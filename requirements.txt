@@ -1,0 +1,16 @@
+--find-links https://download.pytorch.org/whl/torch_stable.html
+
+fastapi
+uvicorn
+matplotlib
+numpy
+pandas
+Pillow
+scikit_learn
+setuptools
+starlette
+torch==2.0.0+cu118
+torchvision==0.15.0+cu118
+tqdm
+python-multipart
+streamlit
