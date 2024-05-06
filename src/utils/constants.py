@@ -1,6 +1,11 @@
-# Model Training Constants
-batch_size: int = 32
-num_workers: int = 2
-epochs: int = 60
-learning_rate: float = 0.0003
-sigmoid_threshold: float = 0.55
+
+constants: dict = {
+    'batch_size': 32,
+    'num_workers': 2,
+    'epochs': 1,
+    'learning_rate': 0.0003,
+    'sigmoid_threshold': 0.55,
+
+    'train_size': 0.81,
+    'validation_size': 0.12
+}

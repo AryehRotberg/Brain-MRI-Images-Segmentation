@@ -7,7 +7,7 @@ from PIL import Image
 
 from data_transformer import DataTransformation
 from utils.unet_parts.unet_model import UNET
-from utils.constants import sigmoid_threshold
+from utils.constants import constants
 
 
 class ModelPrediction:
@@ -16,8 +16,8 @@ class ModelPrediction:
 
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-        self.model = UNET(in_channels=3, out_channels=1)
-        self.model.load_state_dict(torch.load(model_path, map_location=torch.device(self.device)))
+        self.model = UNET(in_channels=3, out_channels=1).to(self.device)
+        self.model.load_state_dict(torch.load(model_path))
     
     def return_mask_array(self, image_path: str) -> np.array:
         '''
@@ -32,14 +32,16 @@ class ModelPrediction:
         image = np.array(Image.open(image_path).convert('RGB'))
         image = self.transform(image)
         image = image.unsqueeze(0)
+        image = image.to(self.device)
         
         self.model.eval()
 
         with torch.no_grad():
             prediction = self.model(image)
             prediction = torch.sigmoid(prediction)
-            prediction = (prediction > sigmoid_threshold).float()
+            prediction = (prediction > constants['sigmoid_threshold']).float()
             prediction = prediction.squeeze()
+            prediction = prediction.cpu()
             prediction = prediction.numpy()
         
         return prediction * 255

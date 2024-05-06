@@ -1,5 +1,7 @@
 import os
 
+import matplotlib.pyplot as plt
+
 import torch
 import torchvision
 
@@ -9,9 +11,11 @@ from torch.utils.data import DataLoader
 
 from tqdm import tqdm
 
+import mlflow
+
 from utils.unet_parts.unet_model import UNET
 from utils.dice_loss import DiceLoss
-from utils.constants import epochs, learning_rate, sigmoid_threshold
+from utils.constants import constants
 
 
 class ModelTraining:
@@ -23,7 +27,9 @@ class ModelTraining:
 
         self.model = UNET(in_channels=3, out_channels=1).to(self.device)
         self.loss_fn = MSELoss()
-        self.optimizer = Adam(self.model.parameters(), lr=learning_rate)
+        self.optimizer = Adam(self.model.parameters(), lr=constants['learning_rate'])
+
+        mlflow.set_experiment('Brain MRI Medical Images Segmentation')
     
     def train_step(self) -> float:
         '''
@@ -99,22 +105,28 @@ class ModelTraining:
             'val_loss': []
         }
 
-        for epoch in range(epochs):
-            if verbose:
-                print(f'\n\nEpoch {epoch + 1} / {epochs}')
+        with mlflow.start_run():            
+            mlflow.log_params(constants)
+            
+            for epoch in range(constants['epochs']):
+                if verbose:
+                    print(f'\n\nEpoch {epoch + 1} / {constants["epochs"]}')
 
-            train_loss = self.train_step()
-            val_loss = self.evaluate_step()
+                train_loss = self.train_step()
+                val_loss = self.evaluate_step()
+                
+                if verbose:
+                    print(f'\n\nTrain loss: {train_loss:.4f} - Validation Loss: {val_loss:.4f}')
+                
+                history['train_loss'].append(train_loss)
+                history['val_loss'].append(val_loss)
             
-            if verbose:
-                print(f'\n\nTrain loss: {train_loss:.4f} - Validation Loss: {val_loss:.4f}')
-            
-            history['train_loss'].append(train_loss)
-            history['val_loss'].append(val_loss)
+            mlflow.log_metrics(history)
+            mlflow.pytorch.log_model(self.model, 'model')
         
         return history
     
-    def save_predictions_as_imgs(self, output_directory: str) -> None:
+    def save_predictions_as_images(self, output_directory: str) -> None:
         '''
         A function that saves masked images per batch.
 
@@ -128,9 +140,25 @@ class ModelTraining:
 
             with torch.no_grad():
                 prediction = torch.sigmoid(self.model(images))
-                prediction = (prediction > sigmoid_threshold).float()
+                prediction = (prediction > constants['sigmoid_threshold']).float()
 
             torchvision.utils.save_image(prediction, f'{output_directory}/pred_{batch_idx}.png')
+    
+    def plot_history(self, history: dict, output_path: str):
+        '''
+        A function that plots the loss graph for both training and validation datasets.
+
+        Arguments:
+            history: dict
+            output_path: str
+        '''
+        plt.plot(history['train_loss'])
+        plt.plot(history['val_loss'])
+        plt.legend(['Train Loss', 'Validation Loss'])
+
+        plt.savefig(output_path)
+
+        plt.show()
     
     def save_model(self, output_directory: str) -> None:
         '''

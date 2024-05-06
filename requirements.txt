@@ -14,3 +14,4 @@ torchvision==0.15.0+cu118
 tqdm
 python-multipart
 streamlit
+mlflow

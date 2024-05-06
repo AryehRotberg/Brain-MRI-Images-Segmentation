@@ -20,8 +20,8 @@ transform = transforms.Compose([transforms.ToTensor(),
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-model = UNET(in_channels=3, out_channels=1)
-model.load_state_dict(torch.load('models/model.pth', map_location=torch.device(device)))
+model = UNET(in_channels=3, out_channels=1).to(device)
+model.load_state_dict(torch.load('models/model.pth'))
 
 app = FastAPI(title='Brain MRI Medical Images Segmentation')
 
@@ -31,6 +31,7 @@ async def predict(file: UploadFile = File(...)):
     array_image = np.array(input_image)
     transformed_image = transform(array_image)
     transformed_image = transformed_image.unsqueeze(0)
+    transformed_image = transformed_image.to(device)
 
     model.eval()
 
@@ -39,9 +40,11 @@ async def predict(file: UploadFile = File(...)):
         prediction = torch.sigmoid(prediction)
         prediction = (prediction > SIGMOID_THRESHOLD).float()
         prediction = prediction.squeeze()
+        prediction = prediction.cpu()
         prediction = prediction.numpy()
         prediction = prediction * 255
     
+    transformed_image = transformed_image.cpu()
     transformed_image = transformed_image[0].permute(1, 2, 0)
     transformed_image = transformed_image.numpy() * 255
     transformed_image = transformed_image.astype(np.uint8)

@@ -15,7 +15,7 @@ from sklearn.model_selection import train_test_split
 from torchvision import transforms
 
 from utils.dataset import BrainMRIDataset
-from utils.constants import batch_size, num_workers
+from utils.constants import constants
 
 
 class DataTransformation:
@@ -141,20 +141,20 @@ class DataTransformation:
         train_dataset, val_dataset, test_dataset = self.get_custom_datasets()
 
         train_loader = DataLoader(train_dataset,
-                                  batch_size=batch_size,
-                                  num_workers=num_workers,
+                                  batch_size=constants['batch_size'],
+                                  num_workers=constants['num_workers'],
                                   pin_memory=True,
                                   shuffle=True)
         
         val_loader = DataLoader(val_dataset,
-                                batch_size=batch_size,
-                                num_workers=num_workers,
+                                batch_size=constants['batch_size'],
+                                num_workers=constants['num_workers'],
                                 pin_memory=True,
                                 shuffle=False)
         
         test_loader = DataLoader(test_dataset,
-                                 batch_size=batch_size,
-                                 num_workers=num_workers,
+                                 batch_size=constants['batch_size'],
+                                 num_workers=constants['num_workers'],
                                  pin_memory=True,
                                  shuffle=False)
         
