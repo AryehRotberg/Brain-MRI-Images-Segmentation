@@ -90,12 +90,13 @@ class ModelTraining:
         val_loss = val_loss / len(self.val_loader)
         return val_loss
     
-    def train(self, verbose: bool=True) -> dict:
+    def train(self, verbose: bool=True, plot_output_path: str = None) -> dict:
         '''
         A function that executes an entire training epoch.
 
         Arguments:
             verbose: bool
+            plot_output_path: str
 
         Returns:
             history: dict
@@ -105,7 +106,9 @@ class ModelTraining:
             'val_loss': []
         }
 
-        with mlflow.start_run():            
+        with mlflow.start_run() as run:
+            mlflow_run_id = run.info.run_id
+            
             mlflow.log_params(constants)
             
             for epoch in range(constants['epochs']):
@@ -121,10 +124,13 @@ class ModelTraining:
                 history['train_loss'].append(train_loss)
                 history['val_loss'].append(val_loss)
             
-            mlflow.log_metrics(history)
             mlflow.pytorch.log_model(self.model, 'model')
+
+            if plot_output_path is not None:
+                self.plot_history(history, plot_output_path)
+                mlflow.log_artifact(plot_output_path)
         
-        return history
+        return history, mlflow_run_id
     
     def save_predictions_as_images(self, output_directory: str) -> None:
         '''
@@ -157,8 +163,6 @@ class ModelTraining:
         plt.legend(['Train Loss', 'Validation Loss'])
 
         plt.savefig(output_path)
-
-        plt.show()
     
     def save_model(self, output_directory: str) -> None:
         '''

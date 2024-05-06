@@ -29,13 +29,12 @@ if __name__ == '__main__':
 
     # Model Training
     mt = ModelTraining(train_loader, val_loader)
-    history = mt.train()
+    history, mlflow_run_id = mt.train(plot_output_path='outputs/history.png')
     mt.save_predictions_as_images('outputs')
     mt.save_model('models')
-    mt.plot_history(history, 'outputs/history.png')
 
     # Model Evaluation
-    me = ModelEvaluation(args.model_path)
+    me = ModelEvaluation(args.model_path, mlflow_run_id)
 
     loss = me.calculate_loss(test_loader)
     

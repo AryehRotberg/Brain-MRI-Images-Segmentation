@@ -98,7 +98,6 @@ class DataTransformation:
         val_test_transform_pipeline = transforms.Compose([transforms.ToTensor(),
                                                           transforms.Resize((256, 256), antialias=True)])
         
-        logger.info('Created transformation pipelines.')
         return train_transform_pipeline, val_test_transform_pipeline
     
     def get_custom_datasets(self) -> Tuple[BrainMRIDataset, BrainMRIDataset, BrainMRIDataset]:

@@ -2,7 +2,7 @@
 constants: dict = {
     'batch_size': 32,
     'num_workers': 2,
-    'epochs': 1,
+    'epochs': 60,
     'learning_rate': 0.0003,
     'sigmoid_threshold': 0.55,
 

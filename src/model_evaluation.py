@@ -5,6 +5,8 @@ import pandas as pd
 
 from tqdm import tqdm
 
+import mlflow
+
 from PIL import Image
 
 import torch
@@ -19,7 +21,8 @@ from utils.constants import constants
 
 
 class ModelEvaluation:
-    def __init__(self, model_path: str) -> None:
+    def __init__(self, model_path: str, mlflow_run_id: str = None) -> None:
+        self.mlflow_run_id = mlflow_run_id
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
         self.model = UNET(in_channels=3, out_channels=1).to(self.device)
@@ -84,8 +87,11 @@ class ModelEvaluation:
         
         result_df = pd.DataFrame({'image_path': images_list, 'tumor': val_df.tumor, 'iou': iou_list})
 
-        if output_path is not None:
+        if output_path is not None and self.mlflow_run_id is not None:
             result_df.to_csv(output_path, index=False)
+        
+            with mlflow.start_run(run_id=self.mlflow_run_id):
+                mlflow.log_artifact(output_path)
 
         return result_df
     
@@ -113,8 +119,11 @@ class ModelEvaluation:
         
         matrix = pd.DataFrame(confusion_matrix(val_df.tumor, predictions))
 
-        if output_path is not None:
+        if output_path is not None and self.mlflow_run_id is not None:
             matrix.to_csv(output_path, index=True)
+
+            with mlflow.start_run(run_id=self.mlflow_run_id):
+                mlflow.log_artifact(output_path)
         
         return matrix
 
@@ -142,8 +151,11 @@ class ModelEvaluation:
         
         report = pd.DataFrame(classification_report(val_df.tumor, predictions, output_dict=True)).round(2).transpose()
 
-        if output_path is not None:
+        if output_path is not None and self.mlflow_run_id is not None:
             report.to_csv(output_path, index=True)
+
+            with mlflow.start_run(run_id=self.mlflow_run_id):
+                mlflow.log_artifact(output_path)
         
         return report
 
