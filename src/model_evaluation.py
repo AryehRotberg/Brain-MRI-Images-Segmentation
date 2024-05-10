@@ -87,9 +87,10 @@ class ModelEvaluation:
         
         result_df = pd.DataFrame({'image_path': images_list, 'tumor': val_df.tumor, 'iou': iou_list})
 
-        if output_path is not None and self.mlflow_run_id is not None:
+        if output_path is not None:
             result_df.to_csv(output_path, index=False)
         
+        if self.mlflow_run_id is not None:
             with mlflow.start_run(run_id=self.mlflow_run_id):
                 mlflow.log_artifact(output_path)
 
@@ -119,9 +120,10 @@ class ModelEvaluation:
         
         matrix = pd.DataFrame(confusion_matrix(val_df.tumor, predictions))
 
-        if output_path is not None and self.mlflow_run_id is not None:
+        if output_path is not None:
             matrix.to_csv(output_path, index=True)
-
+        
+        if self.mlflow_run_id is not None:
             with mlflow.start_run(run_id=self.mlflow_run_id):
                 mlflow.log_artifact(output_path)
         
@@ -151,9 +153,10 @@ class ModelEvaluation:
         
         report = pd.DataFrame(classification_report(val_df.tumor, predictions, output_dict=True)).round(2).transpose()
 
-        if output_path is not None and self.mlflow_run_id is not None:
+        if output_path is not None:
             report.to_csv(output_path, index=True)
-
+        
+        if self.mlflow_run_id is not None:
             with mlflow.start_run(run_id=self.mlflow_run_id):
                 mlflow.log_artifact(output_path)
         
