@@ -19,7 +19,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Model Initialization
 model = UNET(in_channels=3, out_channels=1).to(device)
-model.load_state_dict(torch.load('models/model.pth'))
+model.load_state_dict(torch.load('models/model.pth', map_location=device))
 
 st.title('Brain MRI Medical Images Segmentation')
 

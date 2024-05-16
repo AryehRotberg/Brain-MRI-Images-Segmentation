@@ -17,7 +17,7 @@ class ModelPrediction:
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
         self.model = UNET(in_channels=3, out_channels=1).to(self.device)
-        self.model.load_state_dict(torch.load(model_path))
+        self.model.load_state_dict(torch.load(model_path, map_location=self.device))
     
     def return_mask_array(self, image_path: str) -> np.array:
         '''
