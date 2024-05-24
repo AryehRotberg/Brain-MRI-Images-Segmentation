@@ -10,4 +10,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     mp = ModelPrediction(args.model_path)
-    mp.create_comparison_image(args.image_path, mp.return_mask_array(args.image_path))
+    mp.create_comparison_image(args.image_path, mp.get_mask_pred_array(args.image_path))

@@ -1,7 +1,6 @@
 import os
 import re
 
-from logger import logger
 from typing import Tuple
 
 import numpy as np
@@ -52,30 +51,35 @@ class DataTransformation:
         images_list.sort(key=lambda _ : int(re.sub('\D', '', _)))
         masks_list.sort(key=lambda _ : int(re.sub('\D', '', _)))
 
-        self.medical_df = pd.DataFrame({'image_path': images_list, 'masked_image_path': masks_list})
-        self.medical_df['tumor'] = self.medical_df.masked_image_path.map(self.map_diagnose)
+        medical_df = pd.DataFrame({'image_path': images_list, 'masked_image_path': masks_list})
+        medical_df['tumor'] = medical_df.masked_image_path.map(self.map_diagnose)
 
-    def split_data(self, train_size: float, validation_size: float) -> None:
+        return medical_df
+
+    def split_data(self, train_size: float, validation_size: float, output_directory: str) -> None:
         '''
         A function that splits all images into train, validation and test categories.
 
         Arguments:
             train_size: float
             validation_size: float
+            output_directory: str
         '''
-        self.create_dataset()
+        medical_df = self.create_dataset()
 
-        self.train_df, remaining = train_test_split(self.medical_df,
-                                                    train_size=train_size,
-                                                    stratify=self.medical_df.tumor)
+        train_df, remaining = train_test_split(medical_df,
+                                               train_size=train_size,
+                                               stratify=self.medical_df.tumor)
         
-        self.val_df, self.test_df = train_test_split(remaining,
-                                                     test_size=validation_size,
-                                                     stratify=remaining.tumor)
+        val_df, test_df = train_test_split(remaining,
+                                           test_size=validation_size,
+                                           stratify=remaining.tumor)
         
         del remaining
 
-        logger.info('Splitted data into train/val/test categories.')
+        train_df.to_csv(os.path.join(output_directory, 'train_df.csv'), index=False)
+        val_df.to_csv(os.path.join(output_directory, 'val_df.csv'), index=False)
+        test_df.to_csv(os.path.join(output_directory, 'test_df.csv'), index=False)
     
     def get_transformation_pipelines(self) -> Tuple[transforms.Compose, transforms.Compose]:
         '''
@@ -84,14 +88,7 @@ class DataTransformation:
 
         Returns:
             Tuple[A.Compose, A.Compose]
-        '''        
-        # train_transform_pipeline = transforms.Compose([transforms.ToTensor(),
-        #                                                transforms.Resize((256, 256), antialias=True),
-        #                                                transforms.RandomHorizontalFlip(),
-        #                                                transforms.RandomVerticalFlip(),
-        #                                                transforms.RandomRotation(degrees=35),
-        #                                                transforms.RandomAffine(degrees=15)])
-        
+        '''                
         train_transform_pipeline = transforms.Compose([transforms.ToTensor(),
                                                        transforms.Resize((256, 256), antialias=True)])
         
@@ -100,44 +97,53 @@ class DataTransformation:
         
         return train_transform_pipeline, val_test_transform_pipeline
     
-    def get_custom_datasets(self) -> Tuple[BrainMRIDataset, BrainMRIDataset, BrainMRIDataset]:
+    def get_custom_datasets(self, data_directory) -> Tuple[BrainMRIDataset, BrainMRIDataset, BrainMRIDataset]:
         '''
         A function that returns three custom datasets.
         One for training, one for validation and one for testing.
+
+        Arguments:
+            data_directory: str
 
         Returns:
             Tuple[BrainMRIDataset, BrainMRIDataset, BrainMRIDataset]
         '''
         train_transform_pipeline, val_test_transform_pipeline = self.get_transformation_pipelines()
 
-        train_dataset = BrainMRIDataset(self.train_df,
+        train_df = pd.read_csv(os.path.join(data_directory, 'train_df.csv'))
+        val_df = pd.read_csv(os.path.join(data_directory, 'train_df.csv'))
+        test_df = pd.read_csv(os.path.join(data_directory, 'train_df.csv'))
+
+        train_dataset = BrainMRIDataset(train_df,
                                         self.images_path,
                                         self.masked_images_path,
                                         train_transform_pipeline)
         
-        val_dataset = BrainMRIDataset(self.val_df,
+        val_dataset = BrainMRIDataset(val_df,
                                       self.images_path,
                                       self.masked_images_path,
                                       val_test_transform_pipeline)
         
-        test_dataset = BrainMRIDataset(self.test_df,
+        test_dataset = BrainMRIDataset(test_df,
                                        self.images_path,
                                        self.masked_images_path,
                                        val_test_transform_pipeline)
         
-        logger.info('Created 3 custom datasets for training, validation and testing.')
         return train_dataset, val_dataset, test_dataset
 
     
-    def get_data_loaders(self) -> Tuple[DataLoader, DataLoader, DataLoader]:
+    def get_data_loaders(self, data_directory: str) -> Tuple[DataLoader, DataLoader, DataLoader]:
         '''
         A function that returns data loaders for model training.
         One for training, one for validation and one for testing.
 
+        Arguments:
+            data_directory: str
+
         Returns:
             Tuple[DataLoader, DataLoader, DataLoader]
         '''
-        train_dataset, val_dataset, test_dataset = self.get_custom_datasets()
+        train_dataset, val_dataset, test_dataset = self.get_custom_datasets(data_directory)
 
         train_loader = DataLoader(train_dataset,
                                   batch_size=constants['batch_size'],
@@ -157,5 +163,4 @@ class DataTransformation:
                                  pin_memory=True,
                                  shuffle=False)
         
-        logger.info('Created 3 data loaders for training, validation and testing.')
         return train_loader, val_loader, test_loader

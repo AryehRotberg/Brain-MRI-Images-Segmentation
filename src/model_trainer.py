@@ -3,7 +3,6 @@ import os
 import matplotlib.pyplot as plt
 
 import torch
-import torchvision
 
 from torch.optim import Adam
 from torch.nn import MSELoss
@@ -13,8 +12,7 @@ from tqdm import tqdm
 
 import mlflow
 
-from utils.unet_parts.unet_model import UNET
-from utils.dice_loss import DiceLoss
+import segmentation_models_pytorch as smp
 from utils.constants import constants
 
 
@@ -25,7 +23,11 @@ class ModelTraining:
 
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-        self.model = UNET(in_channels=3, out_channels=1).to(self.device)
+        self.model = smp.UnetPlusPlus(encoder_name=constants['encoder_name'],
+                                      encoder_weights=constants['encoder_weights'],
+                                      in_channels=3,
+                                      classes=1).to(self.device)
+        
         self.loss_fn = MSELoss()
         self.optimizer = Adam(self.model.parameters(), lr=constants['learning_rate'])
 
@@ -107,7 +109,8 @@ class ModelTraining:
         }
 
         with mlflow.start_run() as run:
-            mlflow_run_id = run.info.run_id
+            if verbose:
+                print(f'MLFlow Run ID: {run.info.run_id}')
             
             mlflow.log_params(constants)
             
@@ -130,25 +133,7 @@ class ModelTraining:
                 self.plot_history(history, plot_output_path)
                 mlflow.log_artifact(plot_output_path)
         
-        return history, mlflow_run_id
-    
-    def save_predictions_as_images(self, output_directory: str) -> None:
-        '''
-        A function that saves masked images per batch.
-
-        Arguments:
-            output_directory: str
-        '''
-        self.model.eval()
-
-        for batch_idx, (images, _) in enumerate(self.train_loader):
-            images = images.to(device=self.device)
-
-            with torch.no_grad():
-                prediction = torch.sigmoid(self.model(images))
-                prediction = (prediction > constants['sigmoid_threshold']).float()
-
-            torchvision.utils.save_image(prediction, f'{output_directory}/pred_{batch_idx}.png')
+        return history
     
     def plot_history(self, history: dict, output_path: str):
         '''

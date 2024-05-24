@@ -4,8 +4,6 @@ import re
 
 from tqdm import tqdm
 
-from logger import logger
-
 
 class DataExtraction:
     def __init__(self, raw_data_dir: str, images_dir: str, masked_images_dir: str) -> None:
@@ -29,8 +27,6 @@ class DataExtraction:
                     shutil.copy(os.path.join(patient_path, image_path), os.path.join(self.images_dir, image_path))
                 else:
                     shutil.copy(os.path.join(patient_path, image_path), os.path.join(self.masked_images_dir, image_path))
-        
-        logger.info('Moved images to corresponding directories.')
     
     def rename_images_by_index(self) -> None:
         '''
@@ -49,5 +45,3 @@ class DataExtraction:
         for idx, image_path in tqdm(enumerate(masked_images_list)):
             os.replace(os.path.join(self.masked_images_dir, image_path),
                        os.path.join(self.masked_images_dir, f'image_{idx}.tif'))
-        
-        logger.info('Renamed images by index.')

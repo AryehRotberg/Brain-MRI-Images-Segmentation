@@ -10,18 +10,29 @@ from torchvision import transforms
 
 from PIL import Image
 
-from unet_for_api import UNET
+import segmentation_models_pytorch as smp
 
 
-SIGMOID_THRESHOLD = 0.55
+constants: dict = {
+    'encoder_name': 'resnet34',
+    'encoder_weights': 'imagenet',
+    
+    'sigmoid_threshold': 0.55,
+}
+
+MODEL_PATH = 'models/production/unetplusplus_resnet34.pth'
+
 transform = transforms.Compose([transforms.ToTensor(),
-                                # transforms.RandomRotation(degrees=60),
                                 transforms.Resize((256, 256), antialias=True)])
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-model = UNET(in_channels=3, out_channels=1).to(device)
-model.load_state_dict(torch.load('models/model.pth', map_location=device))
+model = smp.UnetPlusPlus(encoder_name=constants['encoder_name'],
+                         encoder_weights=constants['encoder_weights'],
+                         in_channels=3,
+                         classes=1).to(device)
+
+model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
 
 app = FastAPI(title='Brain MRI Medical Images Segmentation')
 
@@ -38,7 +49,7 @@ async def predict(file: UploadFile = File(...)):
     with torch.no_grad():
         prediction = model(transformed_image)
         prediction = torch.sigmoid(prediction)
-        prediction = (prediction > SIGMOID_THRESHOLD).float()
+        prediction = (prediction > constants['sigmoid_threshold']).float()
         prediction = prediction.squeeze()
         prediction = prediction.cpu()
         prediction = prediction.numpy()
