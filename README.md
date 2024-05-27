@@ -28,8 +28,8 @@ This project focuses on the automated segmentation of brain tumors from MRI scan
 
 ## Usage
 
-1. Train the model: python src/training_pipeline.py --raw_data_path data/raw --images_path data/images --masked_images data/masked_images --model_path models/experiments/model.pth --sorted_data_available ""
-2. Evaluate the model: python src/evaluation_pipeline.py --images_path data/images --masked_images data/masked_images --model_path models/experiments/unetplusplus_resnet34.pth
+1. Train the model: python src/training_pipeline.py --raw_data_path data/raw --images_path data/images --masked_images data/masked_images --model_path models/production/model.pth --sorted_data_available ""
+2. Evaluate the model: python src/evaluation_pipeline.py --images_path data/images --masked_images data/masked_images --model_path models/production/unetplusplus_resnet34.pth
 3. Run Streamlit website: streamlit run app.py
 4. Run the web interface: uvicorn api:app --host 0.0.0.0 --port 8000
    Access the web interface at http://0.0.0.0:8000/
