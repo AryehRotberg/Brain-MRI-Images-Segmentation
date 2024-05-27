@@ -18,7 +18,7 @@ This project focuses on the automated segmentation of brain tumors from MRI scan
 
 ### Installation
 
-1. Clone this repository: git clone https://github.com/AryehRotberg/Brain-MRI-Images-Segmentation.git
+1. Clone this repository: git clone '''https://github.com/AryehRotberg/Brain-MRI-Images-Segmentation.git'''
 2. Create and activate a virtual environment:
  - python -m venv venv
  - source venv/bin/activate  # On Windows use `venv\Scripts\activate`
