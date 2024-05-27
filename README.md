@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project focuses on the automated segmentation of brain tumors from MRI scans using deep learning techniques. The model is built on the U-Net architecture, implemented in PyTorch, and enhanced with various advanced techniques to improve accuracy and robustness. The ultimate goal is to aid in the diagnosis and treatment planning for brain tumor patients.
+This project focuses on the automated segmentation of brain tumors from MRI scans using deep learning techniques. The model is built on the U-Net++ architecture, implemented in PyTorch, and enhanced with various advanced techniques to improve accuracy and robustness. The ultimate goal is to aid in the diagnosis and treatment planning for brain tumor patients.
 
 ## Technologies Used
 
