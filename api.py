@@ -18,21 +18,29 @@ constants: dict = {
     'encoder_weights': 'imagenet',
     
     'sigmoid_threshold': 0.55,
+
+    'model_path': 'models/production/unetplusplus_resnet34.pth'
 }
 
-MODEL_PATH = 'models/production/unetplusplus_resnet34.pth'
+def load_model():
+    global model
+
+    if model is None:
+        model = smp.UnetPlusPlus(encoder_name=constants['encoder_name'],
+                                 encoder_weights=constants['encoder_weights'],
+                                 in_channels=3,
+                                 classes=1).to(device)
+        
+        model.load_state_dict(torch.load(constants['model_path'], map_location=device))
+
+    return model
 
 transform = transforms.Compose([transforms.ToTensor(),
                                 transforms.Resize((256, 256), antialias=True)])
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-model = smp.UnetPlusPlus(encoder_name=constants['encoder_name'],
-                         encoder_weights=constants['encoder_weights'],
-                         in_channels=3,
-                         classes=1).to(device)
-
-model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+model = None
 
 app = FastAPI(title='Brain MRI Medical Images Segmentation')
 
@@ -44,6 +52,7 @@ async def predict(file: UploadFile = File(...)):
     transformed_image = transformed_image.unsqueeze(0)
     transformed_image = transformed_image.to(device)
 
+    model = load_model()
     model.eval()
 
     with torch.no_grad():
