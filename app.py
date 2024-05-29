@@ -14,9 +14,9 @@ constants: dict = {
     'encoder_weights': 'imagenet',
     
     'sigmoid_threshold': 0.55,
-}
 
-MODEL_PATH = 'models/production/unetplusplus_resnet34.pth'
+    'model_path': 'models/production/unetplusplus_resnet34.pth'
+}
 
 # Image Transformer initialization
 transform = transforms.Compose([transforms.ToTensor(),
@@ -32,7 +32,7 @@ def load_model():
                              in_channels=3,
                              classes=1).to(device)
 
-    model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+    model.load_state_dict(torch.load(constants['model_path'], map_location=device))
 
     return model
 
