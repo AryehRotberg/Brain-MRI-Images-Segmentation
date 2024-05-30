@@ -70,9 +70,9 @@ if uploaded_image is not None:
     transformed_image = transformed_image.numpy() * 255
     transformed_image = transformed_image.astype(np.uint8)
 
-    blended_image = transformed_image * (1 - alpha) + colored_mask * alpha
-    blended_image = blended_image.astype(np.uint8)
-    blended_image = Image.fromarray(blended_image).convert('RGB')
+    input_image = Image.fromarray(transformed_image).convert('RGB')
+    colored_mask = Image.fromarray(colored_mask).convert('RGB')
+    blended_image = Image.blend(input_image, colored_mask, alpha=alpha)
 
     st.image(blended_image)
 
