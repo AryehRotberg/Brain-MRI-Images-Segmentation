@@ -10,7 +10,7 @@ import cv2
 import torch
 from torchvision import transforms
 
-from PIL import Image
+from PIL import Image, ImageChops
 
 import segmentation_models_pytorch as smp
 
@@ -24,7 +24,11 @@ constants: dict = {
     'model_path': 'models/production/unetplusplus_resnet34.pth'
 }
 
-def load_model():
+def load_model() -> smp.UnetPlusPlus:
+    '''
+    Returns:
+        model: smp.UnetPlusPlus
+    '''
     global model
 
     if model is None:
@@ -37,16 +41,24 @@ def load_model():
 
     return model
 
-def draw_bounding_boxes(mask: np.array):
+def draw_bounding_boxes(mask: np.array) -> np.array:
+    '''
+    Arguments:
+        mask: np.array (numpy)
+    
+    Returns:
+        np.array (numpy)
+    '''
     mask = mask.astype(np.uint8)
 
+    mask_bgr = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
-        cv2.rectangle(mask, (x, y), (x + w, y + h), (255, 255, 255), 1)
+        cv2.rectangle(mask_bgr, (x, y), (x + w, y + h), (255, 0, 0), 1)
     
-    return mask
+    return mask_bgr
 
 transform = transforms.Compose([transforms.ToTensor(),
                                 transforms.Resize((256, 256), antialias=True)])
@@ -84,12 +96,12 @@ async def predict(file: UploadFile = File(...)):
     transformed_image = transformed_image.numpy() * 255
     transformed_image = transformed_image.astype(np.uint8)
 
-    input_image = Image.fromarray(transformed_image).convert('RGB')
-    predicted_mask = Image.fromarray(prediction).convert('L')
-    input_image.paste(predicted_mask, (0, 0), mask=predicted_mask)
+    input_image = Image.fromarray(transformed_image).convert('RGBA')
+    predicted_mask = Image.fromarray(prediction).convert('RGBA')
+    result = ImageChops.screen(input_image, predicted_mask)
 
     bytes_io = BytesIO()
-    input_image.save(bytes_io, format='PNG')
+    result.save(bytes_io, format='PNG')
     bytes_io.seek(0)
     
     return StreamingResponse(bytes_io, media_type='image/png', headers={'has_tumor': f'{prediction.max() > 0}'})

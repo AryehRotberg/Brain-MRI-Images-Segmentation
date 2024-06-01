@@ -3,7 +3,7 @@ import torch
 import numpy as np
 
 import matplotlib.pyplot as plt
-from PIL import Image
+from PIL import Image, ImageChops
 
 import cv2
 
@@ -66,13 +66,14 @@ class ModelPrediction:
         '''
         mask = mask.astype(np.uint8)
 
+        mask_bgr = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
-            cv2.rectangle(mask, (x, y), (x + w, y + h), (255, 255, 255), 1)
+            cv2.rectangle(mask_bgr, (x, y), (x + w, y + h), (255, 0, 0), 1)
         
-        return mask
+        return mask_bgr
     
     def create_comparison_image(self, image_path: str, mask: np.array) -> None:
         '''
@@ -82,26 +83,25 @@ class ModelPrediction:
             image_path: str
             mask: np.array (numpy)
         '''
-        predicted_image = Image.open(image_path)
-        predicted_mask = Image.fromarray(self.draw_bounding_boxes(mask)).convert('L')
+        predicted_image = Image.open(image_path).convert('RGBA')
+        predicted_mask_with_bbox = Image.fromarray(self.draw_bounding_boxes(mask)).convert('RGBA')
 
-        original_image = Image.open(image_path)
+        original_image = Image.open(image_path).convert('RGBA')
         original_mask = np.array(Image.open(image_path.replace('images', 'masked_images')))
-        original_mask_with_bbox = self.draw_bounding_boxes(original_mask)
-        original_mask_with_bbox = Image.fromarray(original_mask_with_bbox).convert('L')
+        original_mask_with_bbox = Image.fromarray(self.draw_bounding_boxes(original_mask)).convert('RGBA')
 
-        predicted_image.paste(predicted_mask, (0, 0), mask=predicted_mask)
-        original_image.paste(original_mask_with_bbox, (0, 0), mask=original_mask_with_bbox)
+        result_predicted = ImageChops.screen(predicted_image, predicted_mask_with_bbox)
+        result_original = ImageChops.screen(original_image, original_mask_with_bbox)
 
         plt.subplots(1, 2, figsize=(10, 5))
 
         plt.subplot(1, 2, 1)
-        plt.imshow(original_image)
+        plt.imshow(result_original)
         plt.axis('off')
         plt.title('Ground Truth')
         
         plt.subplot(1, 2, 2)
-        plt.imshow(predicted_image)
+        plt.imshow(result_predicted)
         plt.axis('off')
         plt.title('Predicted mask')
 
