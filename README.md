@@ -1,6 +1,6 @@
 # Brain MRI Images Segmentation using U-NET++ Architecture
 
-![project_1_image_2](https://github.com/AryehRotberg/Brain-MRI-Images-Segmentation/assets/49247848/a1446e2e-1225-4b5a-9fae-463f490485e7)
+![Figure_1](https://github.com/AryehRotberg/Brain-MRI-Images-Segmentation/assets/49247848/728459d3-f7c5-49d2-826d-39d2ec60cb31)
 
 ## Overview
 
