@@ -16,3 +16,4 @@ python-multipart
 streamlit
 mlflow
 segmentation-models-pytorch
+opencv-python-headless
