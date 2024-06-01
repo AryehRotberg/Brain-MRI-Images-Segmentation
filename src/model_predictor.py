@@ -5,6 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 
+import cv2
+
 from torchvision import transforms
 
 import segmentation_models_pytorch as smp
@@ -44,13 +46,33 @@ class ModelPrediction:
 
         with torch.no_grad():
             prediction = self.model(transformed_image)
-            prediction = torch.sigmoid(prediction)
-            prediction = (prediction > constants['sigmoid_threshold']).float()
-            prediction = prediction.squeeze()
-            prediction = prediction.cpu()
-            prediction = prediction.numpy()
         
-        return prediction * 255
+        prediction = torch.sigmoid(prediction)
+        prediction = (prediction > constants['sigmoid_threshold']).float()
+        prediction = prediction.squeeze()
+        prediction = prediction.cpu()
+        prediction = prediction.numpy()
+        prediction = prediction * 255
+        
+        return prediction
+    
+    def draw_bounding_boxes(self, mask: np.array) -> np.array:
+        '''
+        Arguments:
+            mask: np.array (numpy)
+        
+        Returns:
+            np.array (numpy)
+        '''
+        mask = mask.astype(np.uint8)
+
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        for contour in contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            cv2.rectangle(mask, (x, y), (x + w, y + h), (255, 255, 255), 1)
+        
+        return mask
     
     def create_comparison_image(self, image_path: str, mask: np.array) -> None:
         '''
@@ -61,13 +83,15 @@ class ModelPrediction:
             mask: np.array (numpy)
         '''
         predicted_image = Image.open(image_path)
-        predicted_mask = Image.fromarray(mask).convert('L')
+        predicted_mask = Image.fromarray(self.draw_bounding_boxes(mask)).convert('L')
 
         original_image = Image.open(image_path)
-        original_mask = Image.open(image_path.replace('images', 'masked_images'))
+        original_mask = np.array(Image.open(image_path.replace('images', 'masked_images')))
+        original_mask_with_bbox = self.draw_bounding_boxes(original_mask)
+        original_mask_with_bbox = Image.fromarray(original_mask_with_bbox).convert('L')
 
         predicted_image.paste(predicted_mask, (0, 0), mask=predicted_mask)
-        original_image.paste(original_mask, (0, 0), mask=original_mask)
+        original_image.paste(original_mask_with_bbox, (0, 0), mask=original_mask_with_bbox)
 
         plt.subplots(1, 2, figsize=(10, 5))
 

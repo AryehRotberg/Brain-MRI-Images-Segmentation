@@ -5,6 +5,8 @@ from starlette.responses import StreamingResponse
 
 import numpy as np
 
+import cv2
+
 import torch
 from torchvision import transforms
 
@@ -35,6 +37,17 @@ def load_model():
 
     return model
 
+def draw_bounding_boxes(mask: np.array):
+    mask = mask.astype(np.uint8)
+
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    for contour in contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        cv2.rectangle(mask, (x, y), (x + w, y + h), (255, 255, 255), 1)
+    
+    return mask
+
 transform = transforms.Compose([transforms.ToTensor(),
                                 transforms.Resize((256, 256), antialias=True)])
 
@@ -57,13 +70,15 @@ async def predict(file: UploadFile = File(...)):
 
     with torch.no_grad():
         prediction = model(transformed_image)
-        prediction = torch.sigmoid(prediction)
-        prediction = (prediction > constants['sigmoid_threshold']).float()
-        prediction = prediction.squeeze()
-        prediction = prediction.cpu()
-        prediction = prediction.numpy()
-        prediction = prediction * 255
     
+    prediction = torch.sigmoid(prediction)
+    prediction = (prediction > constants['sigmoid_threshold']).float()
+    prediction = prediction.squeeze()
+    prediction = prediction.cpu()
+    prediction = prediction.numpy()
+    prediction = prediction * 255
+    prediction = draw_bounding_boxes(prediction)
+
     transformed_image = transformed_image.cpu()
     transformed_image = transformed_image[0].permute(1, 2, 0)
     transformed_image = transformed_image.numpy() * 255

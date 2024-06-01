@@ -3,6 +3,8 @@ import streamlit as st
 import numpy as np
 from PIL import Image, ImageColor
 
+import cv2
+
 import torch
 from torchvision import transforms
 
@@ -36,6 +38,17 @@ def load_model():
 
     return model
 
+def draw_bounding_boxes(mask: np.array):
+    mask = mask.astype(np.uint8)
+
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    for contour in contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        cv2.rectangle(mask, (x, y), (x + w, y + h), (255, 255, 255), 1)
+    
+    return mask
+
 # Streamlit
 st.title('Brain MRI Medical Images Segmentation')
 
@@ -55,13 +68,15 @@ if uploaded_image is not None:
 
     with torch.no_grad():
         prediction = model(transformed_image)
-        prediction = torch.sigmoid(prediction)
-        prediction = (prediction > constants['sigmoid_threshold']).float()
-        prediction = prediction.squeeze()
-        prediction = prediction.cpu()
-        prediction = prediction.numpy()
-        prediction = prediction * 255
     
+    prediction = torch.sigmoid(prediction)
+    prediction = (prediction > constants['sigmoid_threshold']).float()
+    prediction = prediction.squeeze()
+    prediction = prediction.cpu()
+    prediction = prediction.numpy()
+    prediction = prediction * 255
+    prediction = draw_bounding_boxes(prediction)
+
     colored_mask = np.zeros((prediction.shape[0], prediction.shape[1], 3), dtype=np.uint8)
     colored_mask[prediction == 255] = ImageColor.getcolor(color_picked, 'RGB')
 
@@ -74,7 +89,7 @@ if uploaded_image is not None:
     colored_mask = Image.fromarray(colored_mask).convert('RGB')
     blended_image = Image.blend(input_image, colored_mask, alpha=alpha)
 
-    st.image(blended_image)
+    st.image(blended_image, width=350)
 
     if prediction.max() > 0:
         st.info('The program has found a tumor in this MRI scan.')
