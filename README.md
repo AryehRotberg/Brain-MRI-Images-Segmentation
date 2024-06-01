@@ -9,12 +9,13 @@ This project focuses on the automated segmentation of brain tumors from MRI scan
 ## Technologies Used
 
 - Programming Languages: Python
-- Deep Learning Frameworks: PyTorch, segmentation_models_pytorch
-- Web Frameworks: FastAPI
+- Deep Learning Frameworks: PyTorch, Segmentation Models (segmentation-models-pytorch)
+- Web Frameworks: FastAPI, Streamlit
 - Data Processing: NumPy, pandas, scikit-learn
-- Image Processing: PIL
+- Image Processing: PIL, OpenCV
 - Visualization: Matplotlib
 - Model Tracking: MLFlow
+- Containerization: Docker
 
 ## Getting Started
 
@@ -34,6 +35,9 @@ This project focuses on the automated segmentation of brain tumors from MRI scan
 4. Run the web interface: uvicorn api:app --host 0.0.0.0 --port 8000
    Access the web interface at http://0.0.0.0:8000/
    Alternatively, you can access the FastAPI page at http://0.0.0.0:8000/docs/
+5. Docker Setup:
+   - Build the Docker image: docker build -t brain-mri-images-segmentation .
+   - Run the Docker container: docker run -p 8000:8000 brain-mri-images-segmentation
 
 ## Contribution
 
