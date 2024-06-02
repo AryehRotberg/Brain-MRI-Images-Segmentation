@@ -1,3 +1,4 @@
+from typing import Tuple
 import streamlit as st
 
 import numpy as np
@@ -42,25 +43,35 @@ def load_model() -> smp.UnetPlusPlus:
 
     return model
 
-def draw_bounding_boxes(mask: np.array, color: tuple) -> np.array:
+def draw_bounding_boxes(mask: np.array, color: Tuple) -> Tuple[np.array, float]:
     '''
     Arguments:
         mask: np.array (numpy)
-        color: tuple
+        color: Tuple
     
     Returns:
-        np.array (numpy)
+        Tuple[np.array, float]
     '''
     mask = mask.astype(np.uint8)
-    mask_bgr = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
 
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
+    if len(contours) == 0:
+        return mask, 0.0
+
+    mask_bgr = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+    mean_area = []
+
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
-        cv2.rectangle(mask_bgr, (x, y), (x + w, y + h), color, 1)
+
+        max_x = x + w
+        max_y = y + h
+
+        cv2.rectangle(mask_bgr, (x, y), (max_x, max_y), color, 1)
+        mean_area.append(abs(max_x - x) * abs(max_y - y))
     
-    return mask_bgr
+    return mask_bgr, sum(mean_area) / len(mean_area)
 
 # Streamlit
 st.title('Brain MRI Medical Images Segmentation')
@@ -87,7 +98,7 @@ if uploaded_image is not None:
     prediction = prediction.cpu()
     prediction = prediction.numpy()
     prediction = prediction * 255
-    prediction = draw_bounding_boxes(prediction, ImageColor.getcolor(color_picked, 'RGB'))
+    prediction, mean_area = draw_bounding_boxes(prediction, ImageColor.getcolor(color_picked, 'RGB'))
 
     transformed_image = transformed_image.cpu()
     transformed_image = transformed_image[0].permute(1, 2, 0)
@@ -100,6 +111,6 @@ if uploaded_image is not None:
     st.image(ImageChops.screen(input_image, predicted_mask), width=400)
 
     if prediction.max() > 0:
-        st.info('The program has found a tumor in this MRI scan.')
+        st.error(f'The program has found a tumor in this MRI scan. Average pixel area: {round(mean_area, 2)}.')
     else:
         st.info('The program has not found any tumor in this MRI scan.')

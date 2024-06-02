@@ -94,6 +94,7 @@ class ModelPrediction:
         result_original = ImageChops.screen(original_image, original_mask_with_bbox)
 
         plt.subplots(1, 2, figsize=(10, 5))
+        plt.suptitle(f'Intersection over Union (IOU): {self.calculate_iou(mask, original_mask)}')
 
         plt.subplot(1, 2, 1)
         plt.imshow(result_original)
@@ -106,3 +107,22 @@ class ModelPrediction:
         plt.title('Predicted mask')
 
         plt.show()
+    
+    def calculate_iou(self, mask_pred, mask_gt, epsilon=1e-5) -> float:
+        '''
+        A function that returns IOU score of a mask.
+
+        Returns:
+            float
+        '''
+        mask_pred = mask_pred.astype(np.uint8)
+        mask_gt = mask_gt.astype(np.uint8)
+
+        mask_pred[mask_pred > 1] = 1
+        mask_gt[mask_gt > 1] = 1
+
+        intersection = np.sum(mask_pred * mask_gt)
+        union = np.sum(mask_pred + mask_gt - mask_pred * mask_gt)
+
+        iou = round(np.maximum(0, (intersection + epsilon) / (union + epsilon)), 2)
+        return iou
