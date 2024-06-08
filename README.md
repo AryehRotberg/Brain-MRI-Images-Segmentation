@@ -44,12 +44,14 @@ https://www.kaggle.com/datasets/mateuszbuda/lgg-mri-segmentation
 1. Train the model: python src/training_pipeline.py --raw_data_path data/raw --images_path data/images --masked_images data/masked_images --model_path models/production/model.pth --sorted_data_available ""
 2. Evaluate the model: python src/evaluation_pipeline.py --images_path data/images --masked_images data/masked_images --model_path models/production/unetplusplus_resnet34.pth
 3. Run Streamlit website: streamlit run app.py
-4. Run the web interface: uvicorn api:app --host 0.0.0.0 --port 8000
-   Access the web interface at http://0.0.0.0:8000/
-   Alternatively, you can access the FastAPI page at http://0.0.0.0:8000/docs/
-5. Docker Setup:
+4. Run the web interface locally:
+   - uvicorn api:app --host 0.0.0.0 --port 8000; Access the web interface at http://0.0.0.0:8000/; Alternatively, you can access the FastAPI page at http://0.0.0.0:8000/docs/
+   
+   Docker Setup:
    - Build the Docker image: docker build -t brain-mri-images-segmentation .
    - Run the Docker container: docker run -p 8000:8000 brain-mri-images-segmentation
+ 5. Hugging Face Deployment
+    - The project is also deployed on Hugging Face Spaces for easy access and testing. You can try out the model directly on Hugging Face: [https://aryehrotberg-brain-mri-images-segmentation-hf.hf.space/predict](https://huggingface.co/spaces/AryehRotberg/Brain-MRI-Images-Segmentation-HF); API access: https://aryehrotberg-brain-mri-images-segmentation-hf.hf.space/predict
 
 ## Contribution
 
