@@ -17,6 +17,18 @@ This project focuses on the automated segmentation of brain tumors from MRI scan
 - Model Tracking: MLFlow
 - Containerization: Docker
 
+## Data
+
+The dataset used for this project is publicly available and is not owned by me. It contains MRI scans and corresponding masks for brain tumors. The dataset, created by Mateusz Buda, can be accessed on Kaggle's LGG MRI Segmentation dataset:
+https://www.kaggle.com/datasets/mateuszbuda/lgg-mri-segmentation
+
+### Attribution
+
+- Creator: Mateusz Buda
+- Title: LGG MRI Segmentation
+- Source: Kaggle
+- License: CC BY-NC-SA 4.0
+
 ## Getting Started
 
 ### Installation
