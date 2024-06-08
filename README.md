@@ -51,7 +51,7 @@ https://www.kaggle.com/datasets/mateuszbuda/lgg-mri-segmentation
    - Build the Docker image: docker build -t brain-mri-images-segmentation .
    - Run the Docker container: docker run -p 8000:8000 brain-mri-images-segmentation
  5. Hugging Face Deployment
-    - The project is also deployed on Hugging Face Spaces for easy access and testing. You can try out the model directly on Hugging Face: [https://aryehrotberg-brain-mri-images-segmentation-hf.hf.space/predict](https://huggingface.co/spaces/AryehRotberg/Brain-MRI-Images-Segmentation-HF); API access: https://aryehrotberg-brain-mri-images-segmentation-hf.hf.space/predict
+    - The project is also deployed on Hugging Face Spaces for easy access and testing. You can try out the model directly on Hugging Face: https://huggingface.co/spaces/AryehRotberg/Brain-MRI-Images-Segmentation-HF; API access: https://aryehrotberg-brain-mri-images-segmentation-hf.hf.space/predict
 
 ## Contribution
 
