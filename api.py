@@ -2,6 +2,7 @@ from typing import Tuple
 from io import BytesIO
 
 from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse
 
 import numpy as np
@@ -79,6 +80,10 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 model = None
 
 app = FastAPI(title='Brain MRI Medical Images Segmentation')
+
+app.add_middleware(CORSMiddleware,
+                   allow_headers=['*'],
+                   expose_headers=['has_tumor', 'average_pixel_area'])
 
 @app.post('/predict')
 async def predict(file: UploadFile = File(...)):
