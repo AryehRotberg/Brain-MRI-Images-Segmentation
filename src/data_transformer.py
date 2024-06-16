@@ -69,7 +69,7 @@ class DataTransformation:
 
         train_df, remaining = train_test_split(medical_df,
                                                train_size=train_size,
-                                               stratify=self.medical_df.tumor)
+                                               stratify=medical_df.tumor)
         
         val_df, test_df = train_test_split(remaining,
                                            test_size=validation_size,
