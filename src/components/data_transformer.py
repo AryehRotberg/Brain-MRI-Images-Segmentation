@@ -13,8 +13,8 @@ from sklearn.model_selection import train_test_split
 
 from torchvision import transforms
 
-from utils.dataset import BrainMRIDataset
-from utils.constants import constants
+from src.utils.dataset import BrainMRIDataset
+from src.utils.constants import constants
 
 
 class DataTransformation:

@@ -1,11 +1,11 @@
 import argparse
 
-from logging_handler import Logger
+from src.utils.logging_handler import Logger
 
-from data_extractor import DataExtraction
-from data_transformer import DataTransformation
-from model_trainer import ModelTraining
-from utils.constants import constants
+from src.components.data_extractor import DataExtraction
+from src.components.data_transformer import DataTransformation
+from src.components.model_trainer import ModelTraining
+from src.utils.constants import constants
 
 
 if __name__ == '__main__':
@@ -21,27 +21,27 @@ if __name__ == '__main__':
 
     # Data Extraction
     if not args.sorted_data_available:
-        de = DataExtraction(args.raw_data_path, args.images_path, args.masked_images_path)
-        de.move_images_to_directories()
+        data_extractor = DataExtraction(args.raw_data_path, args.images_path, args.masked_images_path)
+        data_extractor.move_images_to_directories()
         logger.info('Moved images to corresponding directories.')
 
-        de.rename_images_by_index()
+        data_extractor.rename_images_by_index()
         logger.info('Renamed images by index.')
 
     # Data Transformation
-    dt = DataTransformation(args.images_path, args.masked_images_path)
-    dt.split_data(train_size=constants['train_size'],
+    data_transformer = DataTransformation(args.images_path, args.masked_images_path)
+    data_transformer.split_data(train_size=constants['train_size'],
                   validation_size=constants['validation_size'],
                   output_directory='outputs/data')
     
     logger.info('Splitted data into train/val/test categories.')
     
-    train_loader, val_loader, test_loader = dt.get_data_loaders(data_directory='outputs/data')
+    train_loader, val_loader, test_loader = data_transformer.get_data_loaders(data_directory='outputs/data')
     logger.info('Created 3 data loaders for training, validation and testing.')
 
     # Model Training
-    mt = ModelTraining(train_loader, val_loader)
-    mt.train(plot_output_path='outputs/history.png')
-    mt.save_model('models')
+    model_trainer = ModelTraining(train_loader, val_loader)
+    model_trainer.train(plot_output_path='outputs/history.png')
+    model_trainer.save_model('models')
 
     logger.info('Trained a model and saved it to models directory.')

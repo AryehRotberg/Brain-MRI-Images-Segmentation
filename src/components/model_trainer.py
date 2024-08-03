@@ -13,7 +13,7 @@ from tqdm import tqdm
 import mlflow
 
 import segmentation_models_pytorch as smp
-from utils.constants import constants
+from src.utils.constants import constants
 
 
 class ModelTraining:

@@ -1,6 +1,6 @@
 import argparse
 
-from model_predictor import ModelPrediction
+from src.components.model_predictor import ModelPrediction
 
 
 if __name__ == '__main__':
@@ -9,5 +9,5 @@ if __name__ == '__main__':
     parser.add_argument('--image_path', type=str, help='A path to an image to be segmented.')
     args = parser.parse_args()
 
-    mp = ModelPrediction(args.model_path)
-    mp.create_comparison_image(args.image_path, mp.get_mask_pred_array(args.image_path))
+    model_predictor = ModelPrediction(args.model_path)
+    model_predictor.create_comparison_image(args.image_path, model_predictor.get_mask_pred_array(args.image_path))

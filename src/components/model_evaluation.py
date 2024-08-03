@@ -17,8 +17,8 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classifica
 
 import segmentation_models_pytorch as smp
 
-from model_predictor import ModelPrediction
-from utils.constants import constants
+from src.components.model_predictor import ModelPrediction
+from src.utils.constants import constants
 
 
 class ModelEvaluation:

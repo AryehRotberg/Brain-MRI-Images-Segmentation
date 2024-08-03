@@ -10,7 +10,7 @@ import cv2
 from torchvision import transforms
 
 import segmentation_models_pytorch as smp
-from utils.constants import constants
+from src.utils.constants import constants
 
 
 class ModelPrediction:
