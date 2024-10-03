@@ -31,16 +31,17 @@ if __name__ == '__main__':
     # Data Transformation
     data_transformer = DataTransformation(args.images_path, args.masked_images_path)
     data_transformer.split_data(train_size=constants['train_size'],
-                  validation_size=constants['validation_size'],
-                  output_directory='outputs/data')
+                                validation_size=constants['validation_size'],
+                                output_directory='outputs/data')
     
     logger.info('Splitted data into train/val/test categories.')
     
-    train_loader, val_loader, test_loader = data_transformer.get_data_loaders(data_directory='outputs/data')
+    train_loader, validation_loader, test_loader = data_transformer.get_data_loaders(data_directory='outputs/data')
     logger.info('Created 3 data loaders for training, validation and testing.')
 
     # Model Training
-    model_trainer = ModelTraining(train_loader, val_loader)
+    model_trainer = ModelTraining(train_loader, validation_loader)
+    model_trainer.get_model_summary()
     model_trainer.train(plot_output_path='outputs/history.png')
     model_trainer.save_model('models')
 
