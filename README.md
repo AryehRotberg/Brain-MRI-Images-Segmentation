@@ -43,9 +43,9 @@ https://www.kaggle.com/datasets/mateuszbuda/lgg-mri-segmentation
 
 1. Train the model: python -m src.pipelines.training_pipeline --raw_data_path data/raw --images_path data/images --masked_images data/masked_images --model_path models/production/model.pth --sorted_data_available ""
 2. Evaluate the model: python -m src.pipelines.evaluation_pipeline --images_path data/images --masked_images data/masked_images --model_path models/production/unetplusplus_resnet34.pth
-3. Run Streamlit website: streamlit run app.py
+3. Run Streamlit website: streamlit run src/app/streamlit_app.py
 4. Run the web interface locally:
-   - uvicorn api:app --host 0.0.0.0 --port 8000; Access the web interface at http://0.0.0.0:8000/; Alternatively, you can access the FastAPI page at http://0.0.0.0:8000/docs/
+   - uvicorn src.app.api:app --host 0.0.0.0 --port 8000; Access the web interface at http://0.0.0.0:8000/; Alternatively, you can access the FastAPI page at http://0.0.0.0:8000/docs/
    
    Docker Setup:
    - Build the Docker image: docker build -t brain-mri-images-segmentation .

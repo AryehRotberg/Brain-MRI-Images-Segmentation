@@ -15,9 +15,10 @@ from torch.utils.data import DataLoader
 
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report
 
+from torchvision import transforms
 import segmentation_models_pytorch as smp
 
-from src.components.model_predictor import ModelPrediction
+from src.components.model_prediction.prediction import ModelPrediction
 from src.utils.constants import constants
 
 
@@ -45,7 +46,9 @@ class ModelEvaluation:
 
         self.loss_fn = MSELoss()
 
-        self.get_mask_pred_array = ModelPrediction(model_path).get_mask_pred_array
+        self.transform = transforms.Compose([transforms.ToTensor(),
+                                             transforms.Resize((256, 256), antialias=True)])
+        self.predictor = ModelPrediction(self.model, self.transform)
     
     def get_iou_dataframe(self, output_path: str) -> pd.DataFrame:
         '''
@@ -61,7 +64,7 @@ class ModelEvaluation:
         iou_list = []
 
         for image_path in tqdm(images_list):
-            prediction = self.get_mask_pred_array(os.path.join(self.images_path, image_path))
+            prediction = self.predictor.predict_and_transform(os.path.join(self.images_path, image_path))
             mask_gt = np.array(Image.open(os.path.join(self.masked_images_path, image_path)).convert('L'))
 
             iou_list.append(self.calculate_iou(prediction, mask_gt))
@@ -90,7 +93,7 @@ class ModelEvaluation:
         predictions = []
 
         for image_path in tqdm(images_list):
-            prediction = self.get_mask_pred_array(os.path.join(self.images_path, image_path))
+            prediction = self.predictor.predict_and_transform(os.path.join(self.images_path, image_path))
             predictions.append(prediction.max() / 255)
         
         matrix = confusion_matrix(self.val_df.tumor, predictions)
@@ -121,7 +124,7 @@ class ModelEvaluation:
         predictions = []
 
         for image_path in tqdm(images_list):
-            prediction = self.get_mask_pred_array(os.path.join(self.images_path, image_path))
+            prediction = self.predictor.predict_and_transform(os.path.join(self.images_path, image_path))
             predictions.append(prediction.max() / 255)
         
         report = pd.DataFrame(classification_report(self.val_df.tumor, predictions, output_dict=True)).round(2).transpose()

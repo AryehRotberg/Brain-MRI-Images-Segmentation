@@ -1,4 +1,4 @@
-image_path,masked_image_path,tumor
+input_image_path,target_image_path,tumor
 image_494.tif,image_494.tif,1
 image_2943.tif,image_2943.tif,0
 image_3196.tif,image_3196.tif,1

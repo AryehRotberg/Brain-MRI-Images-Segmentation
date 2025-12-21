@@ -4,8 +4,8 @@ from src.utils.logging_handler import Logger
 
 import pandas as pd
 
-from src.components.data_transformer import DataTransformation
-from src.components.model_evaluation import ModelEvaluation
+from src.components.data_transformation.transformation import DataTransformation
+from src.components.model_evaluation.evaluation import ModelEvaluation
 
 
 if __name__ == '__main__':

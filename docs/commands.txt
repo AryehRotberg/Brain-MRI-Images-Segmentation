@@ -1,0 +1,5 @@
+python -m src.pipelines.training_pipeline --raw_data_path data/raw --images_path data/images --masked_images data/masked_images --model_path models/experiments/model.pth --sorted_data_available True
+
+python -m src.pipelines.prediction_pipeline --model_path models/production/unetplusplus_resnet34.pth --image_path data/images/image_0.tif
+
+python -m src.pipelines.evaluation_pipeline --images_path data/images --masked_images data/masked_images --model_path models/production/unetplusplus_resnet34.pth

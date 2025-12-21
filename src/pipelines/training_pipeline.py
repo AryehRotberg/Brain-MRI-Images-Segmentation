@@ -1,48 +1,72 @@
-import argparse
+import segmentation_models_pytorch as smp
+from torch.nn import MSELoss
+from torch.optim import Adam
 
-from src.utils.logging_handler import Logger
-
-from src.components.data_extractor import DataExtraction
-from src.components.data_transformer import DataTransformation
-from src.components.model_trainer import ModelTraining
-from src.utils.constants import constants
+from src.components.data_ingestion.ingestion import DataIngestion
+from src.components.model_training.constants import Constants as TrainingConstants
+from src.components.model_training.training import ModelTraining
+from src.components.data_transformation.transformation import DataTransformation
+from .constants import Constants as PipelineConstants
 
 
 if __name__ == '__main__':
-    logger = Logger('training_pipeline.log').create_logger()
-    
-    parser = argparse.ArgumentParser(description='A training pipeline for brain MRI segmentation.')
-    parser.add_argument('--raw_data_path', type=str, help='A path to a directory that contains raw data.')
-    parser.add_argument('--images_path', type=str, help='A directory that contains images only.')
-    parser.add_argument('--masked_images_path', type=str, help='A directory that contains masked images only.')
-    parser.add_argument('--model_path', type=str, help='A path to a trained model.')
-    parser.add_argument('--sorted_data_available', type=bool, help='A boolean value that indicates if the data is already sorted ("" stands for False statement).')
-    args = parser.parse_args()
+    # Data Ingestion
 
-    # Data Extraction
-    if not args.sorted_data_available:
-        data_extractor = DataExtraction(args.raw_data_path, args.images_path, args.masked_images_path)
-        data_extractor.move_images_to_directories()
-        logger.info('Moved images to corresponding directories.')
+    if not PipelineConstants.SORTED_DATA_AVAILABLE:
+        data_ingester = DataIngestion()
 
-        data_extractor.rename_images_by_index()
-        logger.info('Renamed images by index.')
+        data_ingester.move_images_to_directories(
+            data_dir=PipelineConstants.RAW_DATA_DIR, input_images_dir=PipelineConstants.INPUT_IMAGES_DIR, target_images_dir=PipelineConstants.TARGET_IMAGES_DIR
+        )
+
+        data_ingester.rename_images_by_index(
+            input_images_dir=PipelineConstants.INPUT_IMAGES_DIR, target_images_dir=PipelineConstants.TARGET_IMAGES_DIR
+        )
 
     # Data Transformation
-    data_transformer = DataTransformation(args.images_path, args.masked_images_path)
-    data_transformer.split_data(train_size=constants['train_size'],
-                                validation_size=constants['validation_size'],
-                                output_directory='outputs/data')
-    
-    logger.info('Splitted data into train/val/test categories.')
-    
-    train_loader, validation_loader, test_loader = data_transformer.get_data_loaders(data_directory='outputs/data')
-    logger.info('Created 3 data loaders for training, validation and testing.')
+    data_transformer = DataTransformation()
+
+    medical_df = data_transformer.create_medical_dataframe(
+        input_images_dir=PipelineConstants.INPUT_IMAGES_DIR, target_images_dir=PipelineConstants.TARGET_IMAGES_DIR
+    )
+
+    train_df, val_df, test_df = data_transformer.split_data(medical_df)
+
+    train_dataset = data_transformer.create_dataset(
+        train_df, input_images_dir=PipelineConstants.INPUT_IMAGES_DIR, target_images_dir=PipelineConstants.TARGET_IMAGES_DIR
+    )
+
+    val_dataset = data_transformer.create_dataset(
+        val_df, input_images_dir=PipelineConstants.INPUT_IMAGES_DIR, target_images_dir=PipelineConstants.TARGET_IMAGES_DIR
+    )
+
+    test_dataset = data_transformer.create_dataset(
+        test_df, input_images_dir=PipelineConstants.INPUT_IMAGES_DIR, target_images_dir=PipelineConstants.TARGET_IMAGES_DIR
+    )
+
+    train_loader = data_transformer.create_data_loader(train_dataset, shuffle=True)
+    val_loader = data_transformer.create_data_loader(val_dataset, shuffle=False)
+    test_loader = data_transformer.create_data_loader(test_dataset, shuffle=False)
 
     # Model Training
-    model_trainer = ModelTraining(train_loader, validation_loader)
-    model_trainer.get_model_summary()
-    model_trainer.train(plot_output_path='outputs/history.png')
-    model_trainer.save_model('models')
+    model = smp.UnetPlusPlus(
+        encoder_name=TrainingConstants.ENCODER_NAME,
+        encoder_weights=TrainingConstants.ENCODER_WEIGHTS,
+        in_channels=3,
+        classes=1
+    ).to(TrainingConstants.DEVICE)
+    
+    model_trainer = ModelTraining(
+        model=model,
+        loss_fn=MSELoss(),
+        optimizer=Adam(model.parameters(), lr=TrainingConstants.LEARNING_RATE),
+        experiment_name='experiment 1'
+    )
+    
+    model_trainer.train(
+        train_loader,
+        val_loader,
+        plot_path='outputs/loss.jpeg'
+    )
 
-    logger.info('Trained a model and saved it to models directory.')
+    model_trainer.save_model(model, 'models/experiments/model.pth')
