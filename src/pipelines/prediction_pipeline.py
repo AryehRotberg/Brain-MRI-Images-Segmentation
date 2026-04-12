@@ -5,9 +5,8 @@ import segmentation_models_pytorch as smp
 import torch
 from torchvision import transforms
 
-from src.components.model_training.constants import Constants
 from src.components.model_prediction.prediction import ModelPrediction
-
+from src.components.model_training.constants import Constants
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

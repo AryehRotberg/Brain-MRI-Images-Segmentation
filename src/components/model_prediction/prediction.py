@@ -3,8 +3,8 @@ from typing import Any, Dict, List, Optional, Tuple
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-from PIL import Image, ImageChops
 import torch
+from PIL import Image, ImageChops
 from torch.nn import Module
 from torchvision import transforms
 

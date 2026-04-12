@@ -1,10 +1,7 @@
 import pandas as pd
 
 
-def save_as_csv(
-    dataframe: pd.DataFrame,
-    output_path: str
-) -> None:
+def save_as_csv(dataframe: pd.DataFrame, output_path: str) -> None:
     """
     Saves Pandas DataFrame to a CSV file, excluding index column.
 

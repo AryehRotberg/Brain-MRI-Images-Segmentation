@@ -2,13 +2,12 @@ from dataclasses import asdict
 from typing import Any, Dict, List, Optional, Tuple
 
 import mlflow
-from tqdm import tqdm
-
 import torch
 from torch.nn import Module
 from torch.optim import Optimizer
 from torch.utils.data import DataLoader
 from torchinfo import summary
+from tqdm import tqdm
 
 from .constants import Constants
 from .utils import plot_history, save_model
